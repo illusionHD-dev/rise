@@ -1,6 +1,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -8003,11 +8004,20 @@ run(function()
 end)
 	
 run(function()
+	local swordSwing = bedwars.SwordController.swingSwordAtMouse
+	local originalRaycastName = debug.getconstant(swordSwing, 23)
+	local originalRaycastSource = select(2, debug.getupvalue(swordSwing, 4))
+
 	rise.Legit:CreateModule({
 		Name = 'HitFix',
 		Function = function(callback)
-			debug.setconstant(bedwars.SwordController.swingSwordAtMouse, 23, callback and 'raycast' or 'Raycast')
-			debug.setupvalue(bedwars.SwordController.swingSwordAtMouse, 4, callback and bedwars.QueryUtil or workspace)
+			if callback then
+				debug.setconstant(swordSwing, 23, 'raycast')
+				debug.setupvalue(swordSwing, 4, bedwars.QueryUtil)
+			else
+				debug.setconstant(swordSwing, 23, originalRaycastName)
+				debug.setupvalue(swordSwing, 4, originalRaycastSource)
+			end
 		end,
 		Tooltip = 'Changes the raycast function to the correct one'
 	})
