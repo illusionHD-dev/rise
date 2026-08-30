@@ -1,6 +1,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -2254,7 +2255,9 @@ run(function()
 						})
 
 						if #plrs > 0 then
-							switchItem(sword.tool, 0)
+							if not store.hand or store.hand.tool ~= sword.tool then
+								switchItem(sword.tool, 0)
+							end
 							local selfpos = entitylib.character.RootPart.Position
 							local localfacing = entitylib.character.RootPart.CFrame.LookVector * Vector3.new(1, 0, 1)
 
