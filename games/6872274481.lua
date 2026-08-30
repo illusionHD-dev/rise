@@ -1,9 +1,3 @@
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -805,27 +799,7 @@ run(function()
 	Client.Get = function(self, remoteName)
 		local call = OldGet(self, remoteName)
 
-		if remoteName == remotes.AttackEntity then
-			return {
-				instance = call.instance,
-				SendToServer = function(_, attackTable, ...)
-					if not attackTable or not attackTable.validate or not attackTable.validate.selfPosition or not attackTable.validate.targetPosition then
-						return call:SendToServer(attackTable, ...)
-					end
-					local selfpos = attackTable.validate.selfPosition.value
-					local targetpos = attackTable.validate.targetPosition.value
-					store.attackReach = ((selfpos - targetpos).Magnitude * 100) // 1 / 100
-					store.attackReachUpdate = tick() + 1
-
-					if Reach.Enabled or HitBoxes.Enabled then
-						attackTable.validate.raycast = attackTable.validate.raycast or {}
-						attackTable.validate.selfPosition.value += CFrame.lookAt(selfpos, targetpos).LookVector * math.max((selfpos - targetpos).Magnitude - 14.399, 0)
-					end
-
-					return call:SendToServer(attackTable, ...)
-				end
-			}
-		elseif remoteName == 'StepOnSnapTrap' and TrapDisabler.Enabled then
+		if remoteName == 'StepOnSnapTrap' and TrapDisabler and TrapDisabler.Enabled then
 			return {SendToServer = function() end}
 		end
 
