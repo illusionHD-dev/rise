@@ -1,5 +1,6 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -2138,12 +2139,10 @@ run(function()
 	local Particles, Boxes = {}, {}
 	local anims, AnimDelay, AnimTween, armC0 = rise.Libraries.auraanims, tick()
 	local AttackRemote = {FireServer = function() end}
-	local AttackCall
 	local savedLastAttack
 	local savedLastSwing
 	task.spawn(function()
-		AttackCall = bedwars.Client:Get(remotes.AttackEntity)
-		AttackRemote = AttackCall.instance
+		AttackRemote = bedwars.Client:Get(remotes.AttackEntity).instance
 	end)
 
 	local function getAttackData()
@@ -2287,12 +2286,9 @@ run(function()
 								end
 
 								if delta.Magnitude > AttackRange.Value then continue end
-								if (tick() - swingCooldown) < math.max(ChargeTime.Value, 0.02) then continue end
-
 								local actualRoot = v.RootPart or v.Character.PrimaryPart
 								if actualRoot then
-									local cameraPosition = gameCamera.CFrame.Position
-									local dir = CFrame.lookAt(cameraPosition, actualRoot.Position).LookVector
+									local dir = CFrame.lookAt(selfpos, actualRoot.Position).LookVector
 									local pos = selfpos + dir * math.max(delta.Magnitude - 14.399, 0)
 									swingCooldown = tick()
 									bedwars.SwordController.lastAttack = workspace:GetServerTimeNow()
@@ -2309,18 +2305,14 @@ run(function()
 										entityInstance = v.Character,
 										validate = {
 											raycast = {
-											cameraPosition = {value = cameraPosition},
+											cameraPosition = {value = pos},
 											cursorDirection = {value = dir}
 										},
 											targetPosition = {value = actualRoot.Position},
 											selfPosition = {value = pos}
 										}
 									}
-									if (Reach.Enabled or HitBoxes.Enabled) and AttackCall then
-										AttackCall:SendToServer(attackTable)
-									else
-										AttackRemote:FireServer(attackTable)
-									end
+									AttackRemote:FireServer(attackTable)
 								end
 							end
 						end
