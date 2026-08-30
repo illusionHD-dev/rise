@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 repeat task.wait() until game:IsLoaded()
 if shared.rise then shared.rise:Uninject() end
 
@@ -72,8 +73,12 @@ local function finishLoading()
 
 	if not shared.risereload then
 		if not rise.Categories then return end
-		if rise.Settings.GUI.Options['GUI bind indicator'].Enabled then
-			rise:CreateNotification('Finished Loading', rise.RiseButton and 'Press the button in the top right to open GUI' or 'Press '..table.concat(rise.GUIBind.Keys, ' + '):upper()..' to open GUI', 5)
+		local guiOptions = rise.Settings and rise.Settings.GUI and rise.Settings.GUI.Options
+			or rise.Categories.Main and rise.Categories.Main.Options
+		local bindIndicator = guiOptions and guiOptions['GUI bind indicator']
+		if bindIndicator and bindIndicator.Enabled then
+			local guiBind = rise.GUIBind and rise.GUIBind.Keys or rise.Keybind or {'RightShift'}
+			rise:CreateNotification('Finished Loading', rise.RiseButton and 'Press the button in the top right to open GUI' or 'Press '..table.concat(guiBind, ' + '):upper()..' to open GUI', 5)
 		end
 	end
 end
