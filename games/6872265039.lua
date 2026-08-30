@@ -15,11 +15,6 @@ local entitylib = rise.Libraries.entity
 local sessioninfo = rise.Libraries.sessioninfo
 local bedwars = {}
 
-local kickThread = task.spawn(lplr.Kick, lplr, 'Bedwars is no longer supported by Rise V4, thank you for 5 years of support ❤️')
-if coroutine.status(kickThread) ~= 'dead' then
-	game:Shutdown()
-end
-
 local function notif(...)
 	return rise:CreateNotification(...)
 end
