@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -2135,9 +2136,10 @@ run(function()
 	local LegitAura = {}
 	local Particles, Boxes = {}, {}
 	local anims, AnimDelay, AnimTween, armC0 = rise.Libraries.auraanims, tick()
-	local AttackRemote = {FireServer = function() end}
+	local AttackRemote = {SendToServer = function() end}
 	task.spawn(function()
-		AttackRemote = bedwars.Client:Get(remotes.AttackEntity).instance
+		-- Use the client wrapper so reach, whitelist, and raycast validation stay consistent.
+		AttackRemote = bedwars.Client:Get(remotes.AttackEntity)
 	end)
 
 	local function getAttackData()
@@ -2279,9 +2281,9 @@ run(function()
 								end
 
 								if delta.Magnitude > AttackRange.Value then continue end
-								if delta.Magnitude < 14.4 and (tick() - swingCooldown) < math.max(ChargeTime.Value, 0.02) then continue end
+								if (tick() - swingCooldown) < math.max(ChargeTime.Value, 0.02) then continue end
 
-								local actualRoot = v.Character.PrimaryPart
+								local actualRoot = v.RootPart or v.Character.PrimaryPart
 								if actualRoot then
 									local dir = CFrame.lookAt(selfpos, actualRoot.Position).LookVector
 									local pos = selfpos + dir * math.max(delta.Magnitude - 14.399, 0)
@@ -2294,7 +2296,7 @@ run(function()
 										AnimDelay = tick()
 									end
 
-									AttackRemote:FireServer({
+									AttackRemote:SendToServer({
 										weapon = sword.tool,
 										chargedAttack = {chargeRatio = 0},
 										entityInstance = v.Character,
@@ -6256,23 +6258,31 @@ run(function()
 		return currencytable[item.currency] >= (item.price * amount)
 	end
 	
+	local pendingPurchases = {}
+
 	local function buyItem(item, currencytable)
 		if not id then return end
-		notif('AutoBuy', 'Bought '..bedwars.ItemMeta[item.itemType].displayName, 3)
+		if pendingPurchases[item.itemType] then return end
+		if not canBuy(item, currencytable) then return end
+		pendingPurchases[item.itemType] = true
+		currencytable[item.currency] -= item.price
 		bedwars.Client:Get('BedwarsPurchaseItem'):CallServerAsync({
 			shopItem = item,
 			shopId = id
 		}):andThen(function(suc)
+			pendingPurchases[item.itemType] = nil
 			if suc then
+				notif('AutoBuy', 'Bought '..bedwars.ItemMeta[item.itemType].displayName, 3)
 				bedwars.SoundManager:playSound(bedwars.SoundList.BEDWARS_PURCHASE_ITEM)
 				bedwars.Store:dispatch({
 					type = 'BedwarsAddItemPurchased',
 					itemType = item.itemType
 				})
 				bedwars.BedwarsShopController.alreadyPurchasedMap[item.itemType] = true
+			else
+				currencytable[item.currency] += item.price
 			end
 		end)
-		currencytable[item.currency] -= item.price
 	end
 	
 	local function buyUpgrade(upgradeType, currencytable)
@@ -6338,7 +6348,7 @@ run(function()
 	
 				local lastupgrades
 				AutoBuy:Clean(riseEvents.InventoryAmountChanged.Event:Connect(function()
-					if (npctick - tick()) > 1 then npctick = tick() end
+					if (tick() - npctick) > 1 then npctick = tick() end
 				end))
 	
 				repeat
@@ -6351,7 +6361,7 @@ run(function()
 					end
 	
 					if npc and lastupgrades ~= upgrades then
-						if (npctick - tick()) > 1 then npctick = tick() end
+						if (tick() - npctick) > 1 then npctick = tick() end
 						lastupgrades = upgrades
 					end
 	
