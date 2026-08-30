@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local rise = {
 	ActiveBinds = {},
 	Categories = {},
@@ -783,6 +784,7 @@ function rise:Load(skipgui, profile)
 end
 
 function rise:LoadOptions(obj, data)
+	if type(data) ~= 'table' then return end
 	for name, componentData in data do
 		local component = obj.Options[name]
 
