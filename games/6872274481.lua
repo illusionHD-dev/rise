@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -2138,6 +2139,9 @@ run(function()
 	local AttackRemote = {FireServer = function() end}
 	local savedLastAttack
 	local savedLastSwing
+	local swingEffectFunction = oldSwing or bedwars.SwordController.playSwordEffect
+	local originalSwingController = select(2, debug.getupvalue(swingEffectFunction, 6))
+	local originalScytheController = select(2, debug.getupvalue(bedwars.ScytheController.playLocalAnimation, 3))
 	task.spawn(function()
 		AttackRemote = bedwars.Client:Get(remotes.AttackEntity).instance
 	end)
@@ -2351,8 +2355,8 @@ run(function()
 						lplr.PlayerGui.MobileUI['2'].Visible = true
 					end)
 				end
-				debug.setupvalue(oldSwing or bedwars.SwordController.playSwordEffect, 6, bedwars.Knit)
-				debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, bedwars.Knit)
+				debug.setupvalue(swingEffectFunction, 6, originalSwingController)
+				debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, originalScytheController)
 				-- Clear Killaura's timestamps so the normal sword controller can swing immediately.
 				bedwars.SwordController.lastAttack = 0
 				bedwars.SwordController.lastSwing = 0
