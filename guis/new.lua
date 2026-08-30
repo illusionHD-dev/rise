@@ -36,6 +36,7 @@ local httpService = cloneref(game:GetService('HttpService'))
 
 local fontsize = Instance.new('GetTextBoundsParams')
 fontsize.Width = math.huge
+local fallbackFont = Font.fromEnum(Enum.Font.Gotham)
 local notifications
 local assetfunction = getcustomasset
 local getcustomasset
@@ -133,11 +134,16 @@ local isfile = isfile or function(file)
 end
 
 local getfontsize = function(text, size, font)
-	fontsize.Text = text
-	fontsize.Size = size
-	if typeof(font) == 'Font' then
-		fontsize.Font = font
+	local success, bounds = pcall(function()
+		fontsize.Text = text
+		fontsize.Size = size
+		fontsize.Font = typeof(font) == 'Font' and font or fallbackFont
+		return textService:GetTextBoundsAsync(fontsize)
+	end)
+	if success then
+		return bounds
 	end
+	fontsize.Font = fallbackFont
 	return textService:GetTextBoundsAsync(fontsize)
 end
 
@@ -349,24 +355,57 @@ end
 
 do
 	local risefont = writeFont()
-	uipallet.Font = Font.new(risefont, Enum.FontWeight.Regular)
-	uipallet.FontSemiBold = Font.new(risefont, Enum.FontWeight.Medium)
-	uipallet.FontLight = Font.new(risefont, Enum.FontWeight.Light)
-	uipallet.FontIcon1 = Font.new(risefont, Enum.FontWeight.SemiBold)
-	uipallet.FontIcon3 = Font.new(risefont, Enum.FontWeight.ExtraBold)
+	local fontSuccess, customFonts = pcall(function()
+		return {
+			Regular = Font.new(risefont, Enum.FontWeight.Regular),
+			Medium = Font.new(risefont, Enum.FontWeight.Medium),
+			Light = Font.new(risefont, Enum.FontWeight.Light),
+			Icon1 = Font.new(risefont, Enum.FontWeight.SemiBold),
+			Icon3 = Font.new(risefont, Enum.FontWeight.ExtraBold)
+		}
+	end)
+	if fontSuccess then
+		uipallet.Font = customFonts.Regular
+		uipallet.FontSemiBold = customFonts.Medium
+		uipallet.FontLight = customFonts.Light
+		uipallet.FontIcon1 = customFonts.Icon1
+		uipallet.FontIcon3 = customFonts.Icon3
+	else
+		uipallet.Font = fallbackFont
+		uipallet.FontSemiBold = fallbackFont
+		uipallet.FontLight = fallbackFont
+		uipallet.FontIcon1 = fallbackFont
+		uipallet.FontIcon3 = fallbackFont
+	end
 
 	local res = isfile('rise/profiles/color.txt') and loadJson('rise/profiles/color.txt')
 	if res then
 		uipallet.Main = res.Main and Color3.fromRGB(unpack(res.Main)) or uipallet.Main
 		uipallet.Text = res.Text and Color3.fromRGB(unpack(res.Text)) or uipallet.Text
-		uipallet.Font = res.Font and Font.new(
-			res.Font:find('rbxasset') and res.Font or string.format('rbxasset://fonts/families/%s.json', res.Font)
-		) or uipallet.Font
-		uipallet.FontSemiBold = Font.new(uipallet.Font.Family, Enum.FontWeight.SemiBold)
-		uipallet.FontLight = Font.new(uipallet.Font.Family, Enum.FontWeight.Light)
+		if res.Font then
+			local customSuccess, customFont = pcall(function()
+				return Font.new(res.Font:find('rbxasset') and res.Font or string.format('rbxasset://fonts/families/%s.json', res.Font))
+			end)
+			if customSuccess then
+				uipallet.Font = customFont
+			end
+		end
+		uipallet.FontSemiBold = uipallet.Font
+		uipallet.FontLight = uipallet.Font
 	end
 
-	fontsize.Font = uipallet.Font
+	local validFont = pcall(function()
+		fontsize.Font = uipallet.Font
+		return textService:GetTextBoundsAsync(fontsize)
+	end)
+	if not validFont then
+		uipallet.Font = fallbackFont
+		uipallet.FontSemiBold = fallbackFont
+		uipallet.FontLight = fallbackFont
+		uipallet.FontIcon1 = fallbackFont
+		uipallet.FontIcon3 = fallbackFont
+		fontsize.Font = fallbackFont
+	end
 end
 
 do
