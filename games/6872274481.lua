@@ -1,3 +1,4 @@
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -2059,11 +2060,6 @@ run(function()
 	local Particles, Boxes = {}, {}
 	local anims, AnimDelay, AnimTween, armC0 = rise.Libraries.auraanims, tick()
 	local AttackRemote = {FireServer = function() end}
-	local savedLastAttack
-	local savedLastSwing
-	local swingEffectFunction = oldSwing or bedwars.SwordController.playSwordEffect
-	local originalSwingController = select(2, debug.getupvalue(swingEffectFunction, 6))
-	local originalScytheController = select(2, debug.getupvalue(bedwars.ScytheController.playLocalAnimation, 3))
 	task.spawn(function()
 		AttackRemote = bedwars.Client:Get(remotes.AttackEntity).instance
 	end)
@@ -2096,8 +2092,6 @@ run(function()
 		Name = 'Killaura',
 		Function = function(callback)
 			if callback then
-				savedLastAttack = bedwars.SwordController.lastAttack
-				savedLastSwing = bedwars.SwordController.lastSwing
 				if inputService.TouchEnabled then
 					pcall(function()
 						lplr.PlayerGui.MobileUI['2'].Visible = Limit.Enabled
@@ -2217,7 +2211,6 @@ run(function()
 									local dir = CFrame.lookAt(selfpos, actualRoot.Position).LookVector
 									local pos = selfpos + dir * math.max(delta.Magnitude - 14.399, 0)
 									swingCooldown = tick()
-									bedwars.SwordController.lastAttack = workspace:GetServerTimeNow()
 									store.attackReach = (delta.Magnitude * 100) // 1 / 100
 									store.attackReachUpdate = tick() + 1
 
@@ -2278,18 +2271,6 @@ run(function()
 						lplr.PlayerGui.MobileUI['2'].Visible = true
 					end)
 				end
-				debug.setupvalue(swingEffectFunction, 6, originalSwingController)
-				debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, originalScytheController)
-				-- Clear Killaura's timestamps so the normal sword controller can swing immediately.
-				bedwars.SwordController.lastAttack = 0
-				bedwars.SwordController.lastSwing = 0
-				if bedwars.SwordController.lastChargedAttackTimeMap then
-					for weaponName in bedwars.SwordController.lastChargedAttackTimeMap do
-						bedwars.SwordController.lastChargedAttackTimeMap[weaponName] = 0
-					end
-				end
-				savedLastAttack = nil
-				savedLastSwing = nil
 				Attacking = false
 				if armC0 then
 					AnimTween = tweenService:Create(gameCamera.Viewmodel.RightHand.RightWrist, TweenInfo.new(AnimationTween.Enabled and 0.001 or 0.3, Enum.EasingStyle.Exponential), {
