@@ -3,6 +3,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -808,6 +809,9 @@ run(function()
 			return {
 				instance = call.instance,
 				SendToServer = function(_, attackTable, ...)
+					if not attackTable or not attackTable.validate or not attackTable.validate.selfPosition or not attackTable.validate.targetPosition then
+						return call:SendToServer(attackTable, ...)
+					end
 					local selfpos = attackTable.validate.selfPosition.value
 					local targetpos = attackTable.validate.targetPosition.value
 					store.attackReach = ((selfpos - targetpos).Magnitude * 100) // 1 / 100
