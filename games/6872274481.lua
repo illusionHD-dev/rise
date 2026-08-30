@@ -1,7 +1,3 @@
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -2357,8 +2353,14 @@ run(function()
 				end
 				debug.setupvalue(oldSwing or bedwars.SwordController.playSwordEffect, 6, bedwars.Knit)
 				debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, bedwars.Knit)
-				if savedLastAttack ~= nil then bedwars.SwordController.lastAttack = savedLastAttack end
-				if savedLastSwing ~= nil then bedwars.SwordController.lastSwing = savedLastSwing end
+				-- Clear Killaura's timestamps so the normal sword controller can swing immediately.
+				bedwars.SwordController.lastAttack = 0
+				bedwars.SwordController.lastSwing = 0
+				if bedwars.SwordController.lastChargedAttackTimeMap then
+					for weaponName in bedwars.SwordController.lastChargedAttackTimeMap do
+						bedwars.SwordController.lastChargedAttackTimeMap[weaponName] = 0
+					end
+				end
 				savedLastAttack = nil
 				savedLastSwing = nil
 				Attacking = false
