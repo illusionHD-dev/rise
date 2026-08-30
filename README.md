@@ -1,6 +1,6 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./README/rise">
+    <source media="(prefers-color-scheme: dark)" srcset="./README/rise.png">
     <source media="(prefers-color-scheme: light)" srcset="./README/rise.png">
     <img alt="rise logo" src="./README/rise.png">
   </picture>
