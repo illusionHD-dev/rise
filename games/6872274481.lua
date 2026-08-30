@@ -1,4 +1,5 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -2136,10 +2137,13 @@ run(function()
 	local LegitAura = {}
 	local Particles, Boxes = {}, {}
 	local anims, AnimDelay, AnimTween, armC0 = rise.Libraries.auraanims, tick()
-	local AttackRemote = {SendToServer = function() end}
+	local AttackRemote = {FireServer = function() end}
+	local AttackCall
+	local savedLastAttack
+	local savedLastSwing
 	task.spawn(function()
-		-- Use the client wrapper so reach, whitelist, and raycast validation stay consistent.
-		AttackRemote = bedwars.Client:Get(remotes.AttackEntity)
+		AttackCall = bedwars.Client:Get(remotes.AttackEntity)
+		AttackRemote = AttackCall.instance
 	end)
 
 	local function getAttackData()
@@ -2170,6 +2174,8 @@ run(function()
 		Name = 'Killaura',
 		Function = function(callback)
 			if callback then
+				savedLastAttack = bedwars.SwordController.lastAttack
+				savedLastSwing = bedwars.SwordController.lastSwing
 				if inputService.TouchEnabled then
 					pcall(function()
 						lplr.PlayerGui.MobileUI['2'].Visible = Limit.Enabled
@@ -2285,7 +2291,8 @@ run(function()
 
 								local actualRoot = v.RootPart or v.Character.PrimaryPart
 								if actualRoot then
-									local dir = CFrame.lookAt(selfpos, actualRoot.Position).LookVector
+									local cameraPosition = gameCamera.CFrame.Position
+									local dir = CFrame.lookAt(cameraPosition, actualRoot.Position).LookVector
 									local pos = selfpos + dir * math.max(delta.Magnitude - 14.399, 0)
 									swingCooldown = tick()
 									bedwars.SwordController.lastAttack = workspace:GetServerTimeNow()
@@ -2296,16 +2303,24 @@ run(function()
 										AnimDelay = tick()
 									end
 
-									AttackRemote:SendToServer({
+									local attackTable = {
 										weapon = sword.tool,
 										chargedAttack = {chargeRatio = 0},
 										entityInstance = v.Character,
 										validate = {
-											raycast = {},
+											raycast = {
+											cameraPosition = {value = cameraPosition},
+											cursorDirection = {value = dir}
+										},
 											targetPosition = {value = actualRoot.Position},
 											selfPosition = {value = pos}
 										}
-									})
+									}
+									if (Reach.Enabled or HitBoxes.Enabled) and AttackCall then
+										AttackCall:SendToServer(attackTable)
+									else
+										AttackRemote:FireServer(attackTable)
+									end
 								end
 							end
 						end
@@ -2347,6 +2362,10 @@ run(function()
 				end
 				debug.setupvalue(oldSwing or bedwars.SwordController.playSwordEffect, 6, bedwars.Knit)
 				debug.setupvalue(bedwars.ScytheController.playLocalAnimation, 3, bedwars.Knit)
+				if savedLastAttack ~= nil then bedwars.SwordController.lastAttack = savedLastAttack end
+				if savedLastSwing ~= nil then bedwars.SwordController.lastSwing = savedLastSwing end
+				savedLastAttack = nil
+				savedLastSwing = nil
 				Attacking = false
 				if armC0 then
 					AnimTween = tweenService:Create(gameCamera.Viewmodel.RightHand.RightWrist, TweenInfo.new(AnimationTween.Enabled and 0.001 or 0.3, Enum.EasingStyle.Exponential), {
