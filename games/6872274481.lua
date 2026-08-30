@@ -1,5 +1,6 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -7299,7 +7300,7 @@ run(function()
 		end
 	end
 	
-	BedPlates = rise.Categories.Minigames:CreateModule({
+	BedPlates = rise.Categories.Utility:CreateModule({
 		Name = 'BedPlates',
 		Function = function(callback)
 			if callback then
@@ -7499,7 +7500,7 @@ run(function()
 		return false
 	end
 	
-	Breaker = rise.Categories.Minigames:CreateModule({
+	Breaker = rise.Categories.Utility:CreateModule({
 		Name = 'BedNuker',
 		Function = function(callback)
 			if callback then
