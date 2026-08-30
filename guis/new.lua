@@ -1,4 +1,5 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local mainapi = {
 	Categories = {},
 	GUIColor = {
@@ -1741,6 +1742,17 @@ end
 
 function mainapi:CreateCategory(categorysettings)
 	local categoryapi = {Type = 'Category'}
+	local categoryIcons = {
+		Search = '⌕',
+		Combat = '⚔',
+		Movement = '➜',
+		Player = '♙',
+		Render = '◉',
+		Exploit = '⚒',
+		Ghost = '◌',
+		CaS = '▣',
+		Themes = '◆'
+	}
 
 	local buttonsize = getfontsize(categorysettings.Name, 18, uipallet.Font)
 	local button = Instance.new('TextButton')
@@ -1765,10 +1777,10 @@ function mainapi:CreateCategory(categorysettings)
 	icon.Size = UDim2.fromOffset(30, 30)
 	icon.Position = UDim2.fromOffset(-3, 0)
 	icon.BackgroundTransparency = 1
-	icon.Text = categorysettings.RiseIcon or 'a'
+	icon.Text = categoryIcons[categorysettings.Name] or categorysettings.RiseIcon or '•'
 	icon.TextColor3 = color.Dark(uipallet.Text, 0.21)
 	icon.TextSize = 16
-	icon.FontFace = uipallet['FontIcon'..(categorysettings.Font or 1)]
+	icon.FontFace = fallbackFont
 	icon.ZIndex = 2
 	icon.Parent = button
 	local children = Instance.new('ScrollingFrame')
