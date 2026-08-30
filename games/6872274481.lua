@@ -30,11 +30,6 @@ end
 local gameCamera = workspace.CurrentCamera
 local lplr = playersService.LocalPlayer
 
-local kickThread = task.spawn(lplr.Kick, lplr, 'Bedwars is no longer supported by Rise V4, thank you for 5 years of support ❤️')
-if coroutine.status(kickThread) ~= 'dead' then
-	game:Shutdown()
-end
-
 local rise = shared.rise
 local entitylib = rise.Libraries.entity
 local targetinfo = rise.Libraries.targetinfo
