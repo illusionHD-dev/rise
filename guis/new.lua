@@ -1,4 +1,5 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local rise = {
 	ActiveBinds = {},
 	Categories = {},
@@ -199,7 +200,13 @@ do
 	end
 
 	local function downloadFile(path, callback)
-		if not isfile(path) then
+		local cached = false
+		if isfile(path) then
+			local success, contents = pcall(readfile, path)
+			cached = success and type(contents) == 'string' and contents ~= ''
+		end
+
+		if not cached then
 			createDownloader(path)
 
 			local success, data = pcall(function()
@@ -221,7 +228,8 @@ do
 	end
 
 	getriseasset = not inputService.TouchEnabled and getcustomasset and function(path)
-		return downloadFile(path, getcustomasset)
+		local success, asset = pcall(downloadFile, path, getcustomasset)
+		return success and asset or riseAssets[path] or ''
 	end or function(path)
 		return riseAssets[path] or ''
 	end
