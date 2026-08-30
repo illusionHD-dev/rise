@@ -1,4 +1,5 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local run = function(func)
 	func()
 end
@@ -42,7 +43,9 @@ local color = rise.Libraries.color
 local whitelist = rise.Libraries.whitelist
 local prediction = rise.Libraries.prediction
 local getfontsize = rise.Libraries.getfontsize
-local getcustomasset = rise.Libraries.getcustomasset
+local getcustomasset = rise.Libraries.getcustomasset or assetfunction or function()
+	return ''
+end
 
 local store = {
 	attackReach = 0,
