@@ -1,6 +1,7 @@
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 --This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
 local rise = {
 	ActiveBinds = {},
 	Categories = {},
@@ -5577,14 +5578,43 @@ components = {
 		box.TextSize = 14
 		box.TextXAlignment = Enum.TextXAlignment.Left
 		box.Parent = holder
+		local tabNames = {'FAVORITE', 'ALL', 'HUD', 'GAME'}
+		local activeTab = 'ALL'
+		local tabButtons = {}
+		local tabUnderline = Instance.new('Frame')
+		tabUnderline.BorderSizePixel = 0
+		tabUnderline.BackgroundColor3 = uipallet.Text
+		tabUnderline.Size = UDim2.fromOffset(25, 1)
+		tabUnderline.Position = UDim2.fromOffset(140, 78)
+		tabUnderline.Parent = window
+		for index, tabName in tabNames do
+			local tab = Instance.new('TextButton')
+			tab.BackgroundTransparency = 1
+			tab.AutoButtonColor = false
+			tab.FontFace = uipallet.Font
+			tab.Text = tabName
+			tab.TextColor3 = tabName == activeTab and uipallet.Text or color.Dark(uipallet.Text, 0.16)
+			tab.TextSize = 12
+			tab.Size = UDim2.fromOffset(76, 28)
+			tab.Position = UDim2.fromOffset(18 + (index - 1) * 76, 49)
+			tab.Parent = window
+		tabButtons[tabName] = tab
+			tab.MouseButton1Click:Connect(function()
+				activeTab = tabName
+				for name, button in tabButtons do
+					button.TextColor3 = name == activeTab and uipallet.Text or color.Dark(uipallet.Text, 0.16)
+				end
+				tabUnderline.Position = UDim2.fromOffset(18 + (table.find(tabNames, activeTab) - 1) * 76 + 20, 78)
+			end)
+		end
 		local children = Instance.new('ScrollingFrame')
 		children.BackgroundTransparency = 1
 		children.BorderSizePixel = 0
 		children.CanvasSize = UDim2.new()
-		children.Position = UDim2.fromOffset(14, 76)
+		children.Position = UDim2.fromOffset(14, 82)
 		children.ScrollBarThickness = 2
 		children.ScrollBarImageTransparency = 0.75
-		children.Size = UDim2.fromOffset(684, 301)
+		children.Size = UDim2.fromOffset(684, 295)
 		children.Parent = window
 		local windowlist = Instance.new('UIGridLayout')
 		windowlist.CellSize = UDim2.fromOffset(163, 114)
