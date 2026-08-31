@@ -1,7 +1,289 @@
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
---This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.
+--// Pre-load animation
+--// This block intentionally finishes before the rest of Rise initializes.
+do
+	local LoaderConfig = {
+		Name = "Kawaii.win",
+		Duration = 3.5,
+		Scale = 3
+	}
+
+	local Players = game:GetService("Players")
+	local TweenService = game:GetService("TweenService")
+	local TextService = game:GetService("TextService")
+	local Lighting = game:GetService("Lighting")
+
+	local function randomLoaderName()
+		local chars = "qwertyuiopasdfghjklzxcvbnmQWRTYUIOPASDFGHJKLZXCVBNM"
+		local out = table.create(24)
+
+		for i = 1, 24 do
+			local index = math.random(1, #chars)
+			out[i] = chars:sub(index, index)
+		end
+
+		return table.concat(out)
+	end
+
+	local function animate(object, duration, properties)
+		local tween = TweenService:Create(
+			object,
+			TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			properties
+		)
+		tween:Play()
+		return tween
+	end
+
+	local function getTextSize(label)
+		return TextService:GetTextSize(
+			label.Text,
+			label.TextSize,
+			label.Font,
+			Vector2.new(10000, 10000)
+		)
+	end
+
+	local guiParent
+	local success, result = pcall(function()
+		if gethui then
+			return gethui()
+		end
+
+		return game:GetService("CoreGui")
+	end)
+
+	if success then
+		guiParent = result
+	end
+
+	if not guiParent then
+		guiParent = Players.LocalPlayer:WaitForChild("PlayerGui")
+	end
+
+	local Blur = Instance.new("BlurEffect")
+	local LoaderGui = Instance.new("ScreenGui")
+	local texts = Instance.new("Frame")
+	local UIListLayout = Instance.new("UIListLayout")
+	local BlackFrame = Instance.new("Frame")
+
+	LoaderGui.Name = randomLoaderName()
+	LoaderGui.IgnoreGuiInset = true
+	LoaderGui.ResetOnSpawn = false
+	LoaderGui.DisplayOrder = 2147483647
+	LoaderGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+	if syn and syn.protect_gui then
+		pcall(syn.protect_gui, LoaderGui)
+	elseif protect_gui then
+		pcall(protect_gui, LoaderGui)
+	elseif protectgui then
+		pcall(protectgui, LoaderGui)
+	end
+
+	LoaderGui.Parent = guiParent
+
+	texts.Name = randomLoaderName()
+	texts.Parent = LoaderGui
+	texts.AnchorPoint = Vector2.new(0.5, 0.5)
+	texts.BackgroundTransparency = 1
+	texts.BorderSizePixel = 0
+	texts.Position = UDim2.new(0.5, 0, 0.5, 0)
+	texts.Size = UDim2.new(1, 0, 0, 200)
+
+	UIListLayout.Parent = texts
+	UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+	UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+	UIListLayout.Padding = UDim.new(0, LoaderConfig.Scale * 5)
+
+	BlackFrame.Name = randomLoaderName()
+	BlackFrame.Parent = LoaderGui
+	BlackFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	BlackFrame.BackgroundTransparency = 1
+	BlackFrame.BorderSizePixel = 0
+	BlackFrame.Size = UDim2.fromScale(1, 1)
+	BlackFrame.ZIndex = 0
+
+	Blur.Size = 0
+	Blur.Parent = Lighting
+
+	animate(Blur, 1, {
+		Size = 60
+	})
+
+	animate(BlackFrame, 0.5, {
+		BackgroundTransparency = 0.7
+	}).Completed:Wait()
+
+	task.wait(0.5)
+
+	local specialWidth = {
+		Y = 14
+	}
+
+	local function createText(character)
+		local holder = Instance.new("Frame")
+		local label = Instance.new("TextLabel")
+		local gradient = Instance.new("UIGradient")
+		local uiScale = Instance.new("UIScale")
+
+		holder.Name = randomLoaderName()
+		holder.BackgroundTransparency = 1
+		holder.BorderSizePixel = 0
+		holder.Size = UDim2.new(0, 56, 0, 100)
+		holder.ZIndex = 8
+
+		label.Name = randomLoaderName()
+		label.Parent = holder
+		label.AnchorPoint = Vector2.new(0.5, 0.5)
+		label.BackgroundTransparency = 1
+		label.BorderSizePixel = 0
+		label.Position = UDim2.new(0.5, 0, 0.5, 0)
+		label.Size = UDim2.new(0, 28, 0, 50)
+		label.ZIndex = 8
+		label.Font = Enum.Font.GothamBold
+		label.Text = character
+		label.TextColor3 = Color3.fromRGB(255, 255, 255)
+		label.TextSize = 50
+		label.TextWrapped = true
+
+		local textSize = getTextSize(label)
+
+		label.Size = UDim2.new(0, textSize.X + 100, 0, 50)
+		holder.Size = UDim2.new(
+			0,
+			(textSize.X * 2.5) + (specialWidth[character] or 0),
+			0,
+			100
+		)
+
+		gradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 116, 116)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(132, 58, 58))
+		})
+		gradient.Rotation = 88
+		gradient.Parent = label
+
+		uiScale.Parent = label
+		uiScale.Scale = LoaderConfig.Scale
+
+		return holder, label
+	end
+
+	local positionedText = {}
+	local first = true
+
+	for i = 1, #LoaderConfig.Name do
+		local character = LoaderConfig.Name:sub(i, i)
+		local holder, label = createText(character)
+
+		holder.Parent = texts
+		label.TextTransparency = 1
+
+		if not first then
+			label.Position = UDim2.new(0.5, 0, 0.5, 200)
+		end
+
+		table.insert(positionedText, {
+			Frame = holder,
+			Text = label
+		})
+
+		first = false
+	end
+
+	if #positionedText > 0 then
+		local StartText = Instance.new("TextLabel")
+		local gradient = Instance.new("UIGradient")
+		local uiScale = Instance.new("UIScale")
+
+		StartText.Name = randomLoaderName()
+		StartText.Parent = LoaderGui
+		StartText.AnchorPoint = Vector2.new(0.5, 0.5)
+		StartText.BackgroundTransparency = 1
+		StartText.BorderSizePixel = 0
+		StartText.Position = UDim2.new(0.5, 0, 0.5, 0)
+		StartText.Size = UDim2.new(0, 28, 0, 50)
+		StartText.ZIndex = 8
+		StartText.Font = Enum.Font.GothamBold
+		StartText.Text = LoaderConfig.Name:sub(1, 1)
+		StartText.TextColor3 = Color3.fromRGB(255, 255, 255)
+		StartText.TextSize = 50
+		StartText.TextWrapped = true
+		StartText.TextTransparency = 1
+
+		local textSize = getTextSize(StartText)
+		StartText.Size = UDim2.new(0, textSize.X + 100, 0, 50)
+
+		gradient.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 116, 116)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(132, 58, 58))
+		})
+		gradient.Rotation = 88
+		gradient.Parent = StartText
+
+		uiScale.Parent = StartText
+		uiScale.Scale = LoaderConfig.Scale * 4
+
+		animate(StartText, 0.45, {
+			TextTransparency = 0
+		})
+
+		animate(uiScale, 0.5, {
+			Scale = LoaderConfig.Scale
+		})
+
+		task.wait(0.45)
+		task.wait()
+
+		local firstHolder = positionedText[1].Frame
+
+		animate(StartText, 0.35, {
+			Position = UDim2.fromOffset(
+				firstHolder.AbsolutePosition.X + (firstHolder.AbsoluteSize.X / 2),
+				firstHolder.AbsolutePosition.Y + (firstHolder.AbsoluteSize.Y / 2)
+			)
+		})
+
+		task.wait(0.5)
+
+		for index, data in positionedText do
+			if index > 1 then
+				animate(data.Text, 0.65, {
+					Position = UDim2.new(0.5, 0, 0.5, 0),
+					TextTransparency = 0
+				})
+			end
+		end
+
+		task.wait(math.max((LoaderConfig.Duration - 0.5) + 0.65, 0))
+
+		animate(StartText, 1.5, {
+			TextTransparency = 1
+		})
+
+		for _, data in positionedText do
+			animate(data.Text, 1.5, {
+				TextTransparency = 1
+			})
+		end
+
+		animate(Blur, 1.5, {
+			Size = 0
+		})
+
+		animate(BlackFrame, 1.5, {
+			BackgroundTransparency = 1
+		})
+
+		task.wait(1.65)
+	end
+
+	LoaderGui:Destroy()
+	Blur:Destroy()
+end
+
 local rise = {
 	ActiveBinds = {},
 	Categories = {},
