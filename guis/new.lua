@@ -120,9 +120,9 @@ local themecolors = {
 }
 
 local getcustomassets = {
-	['pulsive/assets/rise/slice.png'] = 'rbxasset://risesix/slice.png',
-	['pulsive/assets/rise/blur.png'] = 'rbxasset://risesix/blur.png',
-	['pulsive/assets/new/blur.png'] = 'rbxassetid://14898786664',
+	['rise/assets/rise/slice.png'] = 'rbxasset://risesix/slice.png',
+	['rise/assets/rise/blur.png'] = 'rbxasset://risesix/blur.png',
+	['rise/assets/new/blur.png'] = 'rbxassetid://14898786664',
 }
 
 local isfile = isfile or function(file)
@@ -147,7 +147,7 @@ local function addBlur(parent)
 	blur.Size = UDim2.new(1, 42, 1, 42)
 	blur.Position = UDim2.fromOffset(-24, -15)
 	blur.BackgroundTransparency = 1
-	blur.Image = getcustomasset('pulsive/assets/new/blur.png')
+	blur.Image = getcustomasset('rise/assets/new/blur.png')
 	blur.ScaleType = Enum.ScaleType.Slice
 	blur.SliceCenter = Rect.new(44, 38, 804, 595)
 	blur.Parent = parent
@@ -196,21 +196,94 @@ local function checkKeybinds(compare, target, key)
 	return false
 end
 
+local function formatKeybind(bind)
+	if not bind or #bind == 0 then
+		return 'Unbound'
+	end
+	return table.concat(bind, ' + ')
+end
+
 local function createDownloader(text)
 	if mainapi.Loaded ~= true then
+		if not mainapi.gui then
+			mainapi.DownloaderText = text
+			return
+		end
 		local downloader = mainapi.Downloader
 		if not downloader then
-			downloader = Instance.new('TextLabel')
-			downloader.Size = UDim2.new(1, 0, 0, 40)
-			downloader.BackgroundTransparency = 1
-			downloader.TextStrokeTransparency = 0
-			downloader.TextSize = 20
-			downloader.TextColor3 = Color3.new(1, 1, 1)
-			downloader.FontFace = Font.fromEnum(Enum.Font.Arial)
+			downloader = Instance.new('Frame')
+			downloader.Name = 'Downloader'
+			downloader.Size = UDim2.fromOffset(360, 86)
+			downloader.Position = UDim2.new(0.5, 0, 1, -34)
+			downloader.AnchorPoint = Vector2.new(0.5, 1)
+			downloader.BackgroundColor3 = color.Dark(uipallet.Main, 0.02)
+			downloader.BackgroundTransparency = 0.04
+			downloader.BorderSizePixel = 0
+			downloader.ZIndex = 20
 			downloader.Parent = mainapi.gui
+			addCorner(downloader, UDim.new(0, 16))
+
+			local accent = Instance.new('Frame')
+			accent.Name = 'Accent'
+			accent.Size = UDim2.new(1, -32, 0, 3)
+			accent.Position = UDim2.fromOffset(16, 14)
+			accent.BackgroundColor3 = uipallet.MainColor
+			accent.BorderSizePixel = 0
+			accent.ZIndex = 21
+			accent.Parent = downloader
+			addCorner(accent, UDim.new(1, 0))
+
+			local sweep = Instance.new('Frame')
+			sweep.Name = 'Sweep'
+			sweep.Size = UDim2.fromScale(0.28, 1)
+			sweep.Position = UDim2.fromScale(-0.3, 0)
+			sweep.BackgroundColor3 = uipallet.Text
+			sweep.BackgroundTransparency = 0.25
+			sweep.BorderSizePixel = 0
+			sweep.ZIndex = 22
+			sweep.Parent = accent
+			addCorner(sweep, UDim.new(1, 0))
+
+			local brand = Instance.new('TextLabel')
+			brand.Size = UDim2.fromOffset(80, 26)
+			brand.Position = UDim2.fromOffset(16, 25)
+			brand.BackgroundTransparency = 1
+			brand.Text = 'rise'
+			brand.TextColor3 = uipallet.Text
+			brand.TextSize = 21
+			brand.TextXAlignment = Enum.TextXAlignment.Left
+			brand.FontFace = uipallet.FontSemiBold or Font.fromEnum(Enum.Font.GothamMedium)
+			brand.ZIndex = 21
+			brand.Parent = downloader
+
+			local status = Instance.new('TextLabel')
+			status.Name = 'Status'
+			status.Size = UDim2.new(1, -112, 0, 24)
+			status.Position = UDim2.fromOffset(96, 27)
+			status.BackgroundTransparency = 1
+			status.TextColor3 = color.Dark(uipallet.Text, 0.18)
+			status.TextSize = 16
+			status.TextXAlignment = Enum.TextXAlignment.Right
+			status.FontFace = uipallet.Font or Font.fromEnum(Enum.Font.Gotham)
+			status.ZIndex = 21
+			status.Parent = downloader
+			mainapi.DownloaderStatus = status
 			mainapi.Downloader = downloader
+
+			task.spawn(function()
+				while downloader.Parent do
+					sweep.Position = UDim2.fromScale(-0.3, 0)
+					local sweepTween = tweenService:Create(sweep, TweenInfo.new(0.9, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
+						Position = UDim2.fromScale(1.02, 0)
+					})
+					sweepTween:Play()
+					sweepTween.Completed:Wait()
+					task.wait(0.12)
+				end
+			end
+			end)
 		end
-		downloader.Text = 'Downloading '..text
+		mainapi.DownloaderStatus.Text = 'Downloading  '..text:gsub('rise/', '')
 	end
 end
 
@@ -244,13 +317,13 @@ local function downloadFile(path, func)
 	if not isfile(path) then
 		createDownloader(path)
 		local suc, res = pcall(function()
-			return game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/pulsiveCompiled/'..readfile('pulsive/profiles/commit.txt')..'/'..select(1, path:gsub('pulsive/', '')), true)
+			return game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/riseCompiled/'..readfile('rise/profiles/commit.txt')..'/'..select(1, path:gsub('rise/', '')), true)
 		end)
 		if not suc or res == '404: Not Found' then
 			error(res)
 		end
 		if path:find('.lua') then
-			res = '--This watermark is used to delete the file if its cached, remove it to make the file persist after pulsive updates.\n'..res
+			res = '--This watermark is used to delete the file if its cached, remove it to make the file persist after rise updates.\n'..res
 		end
 		writefile(path, res)
 	end
@@ -329,21 +402,21 @@ end
 
 local function writeFont()
 	if not assetfunction then return 'rbxasset://fonts/productsans.json' end
-	writefile('pulsive/assets/rise/risefont.json', httpService:JSONEncode({
+	writefile('rise/assets/rise/risefont.json', httpService:JSONEncode({
 		name = 'ProductSans',
 		faces = {
-			{style = 'normal', assetId = getcustomasset('pulsive/assets/rise/SF-Pro-Rounded-Light.otf'), name = 'Light', weight = 300},
-			{style = 'normal', assetId = getcustomasset('pulsive/assets/rise/SF-Pro-Rounded-Regular.otf'), name = 'Regular', weight = 400},
-			{style = 'normal', assetId = getcustomasset('pulsive/assets/rise/SF-Pro-Rounded-Medium.otf'), name = 'Medium', weight = 500},
-			{style = 'normal', assetId = getcustomasset('pulsive/assets/rise/Icon-1.ttf'), name = 'Icon1', weight = 600},
-			{style = 'normal', assetId = getcustomasset('pulsive/assets/rise/Icon-3.ttf'), name = 'Icon3', weight = 800}
+			{style = 'normal', assetId = getcustomasset('rise/assets/rise/SF-Pro-Rounded-Light.otf'), name = 'Light', weight = 300},
+			{style = 'normal', assetId = getcustomasset('rise/assets/rise/SF-Pro-Rounded-Regular.otf'), name = 'Regular', weight = 400},
+			{style = 'normal', assetId = getcustomasset('rise/assets/rise/SF-Pro-Rounded-Medium.otf'), name = 'Medium', weight = 500},
+			{style = 'normal', assetId = getcustomasset('rise/assets/rise/Icon-1.ttf'), name = 'Icon1', weight = 600},
+			{style = 'normal', assetId = getcustomasset('rise/assets/rise/Icon-3.ttf'), name = 'Icon3', weight = 800}
 		}
 	}))
-	return getcustomasset('pulsive/assets/rise/risefont.json')
+	return getcustomasset('rise/assets/rise/risefont.json')
 end
 
 if inputService.TouchEnabled then
-	writefile('pulsive/profiles/gui.txt', 'new')
+	writefile('rise/profiles/gui.txt', 'new')
 	return
 end
 
@@ -355,7 +428,7 @@ do
 	uipallet.FontIcon1 = Font.new(risefont, Enum.FontWeight.SemiBold)
 	uipallet.FontIcon3 = Font.new(risefont, Enum.FontWeight.ExtraBold)
 
-	local res = isfile('pulsive/profiles/color.txt') and loadJson('pulsive/profiles/color.txt')
+	local res = isfile('rise/profiles/color.txt') and loadJson('rise/profiles/color.txt')
 	if res then
 		uipallet.Main = res.Main and Color3.fromRGB(unpack(res.Main)) or uipallet.Main
 		uipallet.Text = res.Text and Color3.fromRGB(unpack(res.Text)) or uipallet.Text
@@ -1198,8 +1271,8 @@ components = {
 					if ind then
 						if val ~= 'default' then
 							table.remove(mainapi.Profiles, ind)
-							if isfile('pulsive/profiles/'..val..mainapi.Place..'.txt') and delfile then
-								delfile('pulsive/profiles/'..val..mainapi.Place..'.txt')
+							if isfile('rise/profiles/'..val..mainapi.Place..'.txt') and delfile then
+								delfile('rise/profiles/'..val..mainapi.Place..'.txt')
 							end
 						end
 					else
@@ -1739,6 +1812,17 @@ function mainapi:CreateCategory(categorysettings)
 		mtitle.TextYAlignment = Enum.TextYAlignment.Top
 		mtitle.FontFace = uipallet.Font
 		mtitle.Parent = modulebutton
+		local bindlabel = Instance.new('TextLabel')
+		bindlabel.Name = 'Bind'
+		bindlabel.Size = UDim2.fromOffset(180, 22)
+		bindlabel.Position = UDim2.new(1, -194, 0, 12)
+		bindlabel.BackgroundTransparency = 1
+		bindlabel.Text = formatKeybind(moduleapi.Bind)
+		bindlabel.TextColor3 = color.Dark(uipallet.Text, 0.52)
+		bindlabel.TextSize = 14
+		bindlabel.TextXAlignment = Enum.TextXAlignment.Right
+		bindlabel.FontFace = uipallet.Font
+		bindlabel.Parent = modulebutton
 		modulesettings.Tooltip = modulesettings.Tooltip or 'None'
 		local desc = Instance.new('TextLabel')
 		desc.Size = UDim2.fromOffset(200, 24)
@@ -1773,6 +1857,8 @@ function mainapi:CreateCategory(categorysettings)
 			end
 
 			self.Bind = table.clone(tab)
+			bindlabel.Text = formatKeybind(self.Bind)
+			bindlabel.TextColor3 = color.Dark(uipallet.Text, 0.52)
 		end
 
 		function moduleapi:Toggle(multiple)
@@ -1826,9 +1912,18 @@ function mainapi:CreateCategory(categorysettings)
 		modulebutton.MouseButton1Click:Connect(function()
 			if inputService:IsKeyDown(Enum.KeyCode.LeftShift) then
 				mainapi.Binding = moduleapi
+				bindlabel.Text = 'Press a key...'
+				bindlabel.TextColor3 = uipallet.MainColor
 				return
 			end
 			moduleapi:Toggle()
+		end)
+		modulebutton.InputBegan:Connect(function(inputObj)
+			if inputObj.UserInputType == Enum.UserInputType.MouseButton3 then
+				mainapi.Binding = moduleapi
+				bindlabel.Text = 'Press a key...'
+				bindlabel.TextColor3 = uipallet.MainColor
+			end
 		end)
 		modulebutton.MouseButton2Click:Connect(function()
 			modulechildren.Visible = not modulechildren.Visible
@@ -2298,11 +2393,11 @@ function mainapi:Load(skipgui, profile)
 	local guidata = {}
 	local savecheck = true
 
-	if isfile('pulsive/profiles/'..game.GameId..'.gui.txt') then
-		guidata = loadJson('pulsive/profiles/'..game.GameId..'.gui.txt')
+	if isfile('rise/profiles/'..game.GameId..'.gui.txt') then
+		guidata = loadJson('rise/profiles/'..game.GameId..'.gui.txt')
 		if not guidata then
 			guidata = {Categories = {}}
-			self:CreateNotification('pulsive', 'Failed to load GUI settings.', 10, 'alert')
+			self:CreateNotification('rise', 'Failed to load GUI settings.', 10, 'alert')
 			savecheck = false
 		end
 
@@ -2328,15 +2423,15 @@ function mainapi:Load(skipgui, profile)
 	}}
 	--self.Categories.Profiles:ChangeValue()
 
-	if isfile('pulsive/profiles/'..self.Profile..self.Place..'.txt') then
-		local savedata = loadJson('pulsive/profiles/'..self.Profile..self.Place..'.txt')
+	if isfile('rise/profiles/'..self.Profile..self.Place..'.txt') then
+		local savedata = loadJson('rise/profiles/'..self.Profile..self.Place..'.txt')
 		if not savedata then
 			savedata = {
 				Categories = {},
 				Modules = {},
 				Legit = {}
 			}
-			self:CreateNotification('pulsive', 'Failed to load '..self.Profile..' profile.', 10, 'alert')
+			self:CreateNotification('rise', 'Failed to load '..self.Profile..' profile.', 10, 'alert')
 			savecheck = false
 		end
 
@@ -2379,8 +2474,141 @@ function mainapi:Load(skipgui, profile)
 	if self.Downloader then
 		self.Downloader:Destroy()
 		self.Downloader = nil
+		self.DownloaderStatus = nil
 	end
 	self.Loaded = savecheck
+	if self.Loaded then
+		task.defer(function()
+			self:ShowTutorial()
+		end)
+	end
+end
+
+function mainapi:ShowTutorial(force)
+	if not force and isfile('rise/profiles/tutorial.txt') then
+		return
+	end
+	if self.Tutorial then
+		return
+	end
+
+	local steps = {
+		{'Welcome to rise', 'A clean control panel for your modules.'},
+		{'Toggle modules', 'Left click a module to turn it on or off. Right click expands its options.'},
+		{'Bind modules', 'Middle click a module, then press a key. Hold Shift and left click also works.'},
+		{'Open the menu', 'Use RightShift to show or hide the rise menu. Your settings save automatically.'}
+	}
+	local page = 1
+	local overlay = Instance.new('Frame')
+	overlay.Name = 'Tutorial'
+	overlay.Size = UDim2.fromScale(1, 1)
+	overlay.BackgroundColor3 = Color3.new(0, 0, 0)
+	overlay.BackgroundTransparency = 0.38
+	overlay.ZIndex = 50
+	overlay.Parent = self.gui
+	local card = Instance.new('Frame')
+	card.Size = UDim2.fromOffset(470, 270)
+	card.Position = UDim2.fromScale(0.5, 0.5)
+	card.AnchorPoint = Vector2.new(0.5, 0.5)
+	card.BackgroundColor3 = color.Dark(uipallet.Main, 0.01)
+	card.BorderSizePixel = 0
+	card.ZIndex = 51
+	card.Parent = overlay
+	addCorner(card, UDim.new(0, 20))
+	local accent = Instance.new('Frame')
+	accent.Size = UDim2.new(1, -48, 0, 4)
+	accent.Position = UDim2.fromOffset(24, 22)
+	accent.BackgroundColor3 = uipallet.MainColor
+	accent.BorderSizePixel = 0
+	accent.ZIndex = 52
+	accent.Parent = card
+	addCorner(accent, UDim.new(1, 0))
+	local title = Instance.new('TextLabel')
+	title.Size = UDim2.new(1, -48, 0, 36)
+	title.Position = UDim2.fromOffset(24, 42)
+	title.BackgroundTransparency = 1
+	title.TextColor3 = uipallet.Text
+	title.TextSize = 26
+	title.TextXAlignment = Enum.TextXAlignment.Left
+	title.FontFace = uipallet.FontSemiBold or Font.fromEnum(Enum.Font.GothamMedium)
+	title.ZIndex = 52
+	title.Parent = card
+	local body = Instance.new('TextLabel')
+	body.Size = UDim2.new(1, -48, 0, 76)
+	body.Position = UDim2.fromOffset(24, 88)
+	body.BackgroundTransparency = 1
+	body.TextColor3 = color.Dark(uipallet.Text, 0.2)
+	body.TextSize = 18
+	body.TextWrapped = true
+	body.TextXAlignment = Enum.TextXAlignment.Left
+	body.TextYAlignment = Enum.TextYAlignment.Top
+	body.FontFace = uipallet.Font
+	body.ZIndex = 52
+	body.Parent = card
+	local progress = Instance.new('TextLabel')
+	progress.Size = UDim2.new(1, -48, 0, 20)
+	progress.Position = UDim2.fromOffset(24, 172)
+	progress.BackgroundTransparency = 1
+	progress.TextColor3 = color.Dark(uipallet.Text, 0.58)
+	progress.TextSize = 14
+	progress.TextXAlignment = Enum.TextXAlignment.Left
+	progress.FontFace = uipallet.Font
+	progress.ZIndex = 52
+	progress.Parent = card
+	local next = Instance.new('TextButton')
+	next.Size = UDim2.fromOffset(110, 36)
+	next.Position = UDim2.new(1, -134, 1, -52)
+	next.BackgroundColor3 = uipallet.MainColor
+	next.TextColor3 = Color3.new(1, 1, 1)
+	next.TextSize = 16
+	next.AutoButtonColor = false
+	next.FontFace = uipallet.FontSemiBold or Font.fromEnum(Enum.Font.GothamMedium)
+	next.ZIndex = 52
+	next.Parent = card
+	addCorner(next, UDim.new(0, 10))
+	local skip = Instance.new('TextButton')
+	skip.Size = UDim2.fromOffset(110, 36)
+	skip.Position = UDim2.new(0, 24, 1, -52)
+	skip.BackgroundTransparency = 1
+	skip.Text = 'Skip'
+	skip.TextColor3 = color.Dark(uipallet.Text, 0.42)
+	skip.TextSize = 15
+	skip.AutoButtonColor = false
+	skip.FontFace = uipallet.Font
+	skip.ZIndex = 52
+	skip.Parent = card
+
+	local function closeTutorial()
+		writefile('rise/profiles/tutorial.txt', '1')
+		self.Tutorial = nil
+		tween:Tween(card, TweenInfo.new(0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+			Position = UDim2.fromScale(0.5, 0.54)
+		}, nil, true)
+		task.delay(0.24, function()
+			overlay:Destroy()
+		end)
+	end
+	local function render()
+		title.Text = steps[page][1]
+		body.Text = steps[page][2]
+		progress.Text = page..' / '..#steps
+		next.Text = page == #steps and 'Finish' or 'Next'
+	end
+	next.MouseButton1Click:Connect(function()
+		if page == #steps then
+			closeTutorial()
+		else
+			page += 1
+			render()
+		end
+	end)
+	skip.MouseButton1Click:Connect(closeTutorial)
+	self.Tutorial = overlay
+	render()
+	card.Position = UDim2.fromScale(0.5, 0.54)
+	tween:Tween(card, TweenInfo.new(0.35, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out), {
+		Position = UDim2.fromScale(0.5, 0.5)
+	}, nil, true)
 end
 
 function mainapi:LoadOptions(object, savedoptions)
@@ -2450,8 +2678,8 @@ function mainapi:Save(newprofile)
 		}
 	end
 
-	writefile('pulsive/profiles/'..game.GameId..'.gui.txt', httpService:JSONEncode(guidata))
-	writefile('pulsive/profiles/'..self.Profile..self.Place..'.txt', httpService:JSONEncode(savedata))
+	writefile('rise/profiles/'..game.GameId..'.gui.txt', httpService:JSONEncode(guidata))
+	writefile('rise/profiles/'..self.Profile..self.Place..'.txt', httpService:JSONEncode(savedata))
 end
 
 function mainapi:SaveOptions(object, savedoptions)
@@ -2498,9 +2726,9 @@ function mainapi:Uninject()
 	table.clear(mainapi.Connections)
 	table.clear(mainapi.Libraries)
 	loopClean(mainapi)
-	shared.pulsive = nil
-	shared.pulsivereload = nil
-	shared.pulsiveIndependent = nil
+	shared.rise = nil
+	shared.risereload = nil
+	shared.riseIndependent = nil
 end
 
 gui = Instance.new('ScreenGui')
@@ -2516,6 +2744,10 @@ else
 	gui.ResetOnSpawn = false
 end
 mainapi.gui = gui
+if mainapi.DownloaderText then
+	createDownloader(mainapi.DownloaderText)
+	mainapi.DownloaderText = nil
+end
 scaledgui = Instance.new('Frame')
 scaledgui.Name = 'ScaledGui'
 scaledgui.Size = UDim2.fromScale(1, 1)
@@ -2841,12 +3073,12 @@ mainapi.Categories.Main:CreateDropdown({
 	List = {'rise', 'new', 'old'},
 	Function = function(val, mouse)
 		if mouse then
-			writefile('pulsive/profiles/gui.txt', val)
-			shared.pulsivereload = true
-			if shared.pulsiveDeveloper then
-				loadstring(readfile('pulsive/loader.lua'), 'loader')()
+			writefile('rise/profiles/gui.txt', val)
+			shared.risereload = true
+			if shared.riseDeveloper then
+				loadstring(readfile('rise/loader.lua'), 'loader')()
 			else
-				loadstring(game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/pulsiveCompiled/'..readfile('pulsive/profiles/commit.txt')..'/loader.lua', true))()
+				loadstring(game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/riseCompiled/'..readfile('rise/profiles/commit.txt')..'/loader.lua', true))()
 			end
 		end
 	end
@@ -2870,11 +3102,11 @@ mainapi.RainbowUpdateSpeed = mainapi.Categories.Main:CreateSlider({
 mainapi.Categories.Main:CreateButton({
 	Name = 'Reinject',
 	Function = function()
-		shared.pulsivereload = true
-		if shared.pulsiveDeveloper then
-			loadstring(readfile('pulsive/loader.lua'), 'loader')()
+		shared.risereload = true
+		if shared.riseDeveloper then
+			loadstring(readfile('rise/loader.lua'), 'loader')()
 		else
-			loadstring(game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/pulsiveCompiled/'..readfile('pulsive/profiles/commit.txt')..'/loader.lua', true))()
+			loadstring(game:HttpGet('https://raw.githubusercontent.com/7GrandDadPGN/riseCompiled/'..readfile('rise/profiles/commit.txt')..'/loader.lua', true))()
 		end
 	end
 })
@@ -3230,7 +3462,7 @@ function mainapi:UpdateTextGUI(afterload)
 					holderline.Size = UDim2.fromOffset(2, 18)
 					holderline.Position = UDim2.new(1, 0, 0, 2)
 					holderline.BackgroundTransparency = 1
-					holderline.Image = getcustomasset('pulsive/assets/rise/slice.png')
+					holderline.Image = getcustomasset('rise/assets/rise/slice.png')
 					holderline.ImageColor3 = uipallet.MainColor
 					holderline.ZIndex = -1
 					holderline.Parent = holderbackground
