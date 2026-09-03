@@ -17,7 +17,7 @@
 [Youtube](https://youtube.com/c/7GrandDadVape)
 
 ## Usage
-1. Download the specific scripting utility of your choice.
+1. Download the specific executor of your choice. (https://weao.xyz)
 2. Execute the provided loadstring below.
 ```luau
 loadstring(game:HttpGet("https://raw.githubusercontent.com/illusionHD-dev/rise/refs/heads/main/loader.lua", true))()
